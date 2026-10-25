@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relaydesk · Shared Inbox for Support Teams (demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #fbfaff; --ink: #14111f; --muted: #625e74; --line: #e9e6f3; --v: #5b3df5; --lime: #c8f25c; --pink: #ff7ab6; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: Inter, sans-serif; background: var(--bg); color: var(--ink); overflow-x: hidden; }
+  h1, h2, h3 { font-family: 'Bricolage Grotesque', sans-serif; margin: 0; letter-spacing: -.02em; }
+  a { color: inherit; text-decoration: none; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px; border-radius: 12px; font-weight: 600; font-size: 15px; border: 0; cursor: pointer; font-family: inherit; }
+  .btn.dark { background: var(--ink); color: #fff; }
+  .btn.ghost { background: #fff; border: 1px solid var(--line); }
+  nav { display: flex; align-items: center; gap: 30px; padding: 18px 6vw; position: sticky; top: 0; z-index: 9; background: rgba(251, 250, 255, .85); backdrop-filter: blur(10px); }
+  nav b { font-family: 'Bricolage Grotesque'; font-size: 22px; display: flex; gap: 8px; align-items: center; }
+  nav b i { width: 26px; height: 26px; background: var(--v); border-radius: 8px 8px 8px 2px; display: block; }
+  nav .links { display: flex; gap: 26px; font-size: 14px; color: var(--muted); margin-right: auto; }
+  .hero { text-align: center; padding: 70px 6vw 0; position: relative; }
+  .hero::before { content: ''; position: absolute; inset: -100px 0 auto; height: 600px; background: radial-gradient(600px 300px at 30% 30%, #e7e0ff, transparent), radial-gradient(500px 260px at 75% 20%, #ffe3f0, transparent); z-index: -1; }
+  .pill { display: inline-flex; gap: 8px; align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 99px; padding: 6px 14px 6px 6px; font-size: 13px; }
+  .pill span { background: var(--lime); border-radius: 99px; padding: 2px 9px; font-weight: 600; }
+  .hero h1 { font-size: clamp(42px, 6.5vw, 86px); line-height: .98; margin: 22px auto 20px; max-width: 980px; font-weight: 800; }
+  .hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--v), var(--pink)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p { color: var(--muted); font-size: 19px; max-width: 620px; margin: 0 auto 30px; line-height: 1.55; }
+  .hero .ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .hero small { display: block; color: var(--muted); margin-top: 14px; font-size: 13px; }
+  .shot { margin: 56px auto 0; max-width: 1040px; background: #fff; border: 1px solid var(--line); border-radius: 20px 20px 0 0; box-shadow: 0 -10px 60px -20px rgba(91, 61, 245, .35); display: grid; grid-template-columns: 200px 300px 1fr; height: 380px; overflow: hidden; text-align: left; font-size: 13px; }
+  .shot .s1 { background: #f6f4fd; padding: 16px; display: grid; gap: 6px; align-content: start; }
+  .shot .s1 div { padding: 7px 10px; border-radius: 8px; display: flex; justify-content: space-between; color: var(--muted); }
+  .shot .s1 div.on { background: #fff; color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0, 0, 0, .06); }
+  .shot .s2 { border-right: 1px solid var(--line); }
+  .mail { padding: 12px 14px; border-bottom: 1px solid var(--line); display: grid; gap: 3px; animation: in .5s both; }
+  .mail.on { background: #f3f0ff; box-shadow: inset 3px 0 var(--v); }
+  .mail b { display: flex; justify-content: space-between; } .mail b small { color: var(--muted); font-weight: 400; }
+  .mail span { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  @keyframes in { from { opacity: 0; transform: translateX(-10px); } }
+  .shot .s3 { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+  .bubble { max-width: 80%; padding: 12px 14px; border-radius: 14px; line-height: 1.45; }
+  .bubble.them { background: #f3f2f7; }
+  .bubble.us { background: var(--v); color: #fff; align-self: flex-end; }
+  .typing { align-self: flex-end; display: flex; gap: 4px; padding: 12px 14px; background: #ece8ff; border-radius: 14px; }
+  .typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--v); animation: blink 1s infinite; }
+  .typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
+  @keyframes blink { 50% { opacity: .2; } }
+  .tagchip { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: var(--lime); font-weight: 600; align-self: flex-start; }
+  .logos { display: flex; gap: 48px; justify-content: center; flex-wrap: wrap; padding: 40px 6vw; color: #a19cb5; font-family: 'Bricolage Grotesque'; font-weight: 700; font-size: 22px; border-top: 1px solid var(--line); }
+  section { padding: 90px 6vw; }
+  .center { text-align: center; max-width: 680px; margin: 0 auto 46px; }
+  .center h2 { font-size: clamp(32px, 4vw, 52px); }
+  .center p { color: var(--muted); font-size: 17px; line-height: 1.6; }
+  .feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 1120px; margin: 0 auto; }
+  .feat { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 26px; opacity: 0; transform: translateY(20px); transition: .6s; }
+  .feat.vis { opacity: 1; transform: none; }
+  .feat .ic { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 22px; margin-bottom: 16px; }
+  .feat h3 { font-size: 21px; margin-bottom: 8px; }
+  .feat p { color: var(--muted); line-height: 1.6; margin: 0; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 1120px; margin: 0 auto; background: var(--ink); color: #fff; border-radius: 26px; padding: 40px; }
+  .stats div b { font-family: 'Bricolage Grotesque'; font-size: 56px; color: var(--lime); display: block; }
+  .stats div span { color: #b8b3cc; }
+  .toggle { display: inline-flex; background: #fff; border: 1px solid var(--line); border-radius: 99px; padding: 4px; margin-top: 10px; }
+  .toggle button { border: 0; background: none; border-radius: 99px; padding: 8px 18px; cursor: pointer; font: inherit; font-weight: 600; color: var(--muted); }
+  .toggle button.on { background: var(--ink); color: #fff; }
+  .toggle em { font-style: normal; background: var(--lime); color: var(--ink); border-radius: 99px; padding: 1px 7px; font-size: 12px; margin-left: 4px; }
+  .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 1080px; margin: 0 auto; }
+  .plan { background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 30px; display: flex; flex-direction: column; gap: 14px; }
+  .plan.pop { background: var(--v); color: #fff; border: 0; transform: scale(1.03); box-shadow: 0 30px 60px -30px rgba(91, 61, 245, .7); }
+  .plan .price { font-family: 'Bricolage Grotesque'; font-size: 52px; font-weight: 800; }
+  .plan .price small { font-family: Inter; font-size: 15px; font-weight: 500; opacity: .7; }
+  .plan ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; flex: 1; }
+  .plan li::before { content: '✓  '; color: var(--v); font-weight: 700; }
+  .plan.pop li::before { color: var(--lime); }
+  .plan.pop .btn { background: #fff; color: var(--v); }
+  .faq { max-width: 760px; margin: 0 auto; }
+  details { border-bottom: 1px solid var(--line); padding: 20px 0; }
+  summary { cursor: pointer; font-weight: 600; font-size: 18px; list-style: none; display: flex; justify-content: space-between; }
+  summary::after { content: '+'; font-size: 24px; color: var(--v); transition: transform .2s; }
+  details[open] summary::after { transform: rotate(45deg); }
+  details p { color: var(--muted); line-height: 1.6; margin: 12px 0 0; }
+  .final { margin: 0 6vw 60px; border-radius: 28px; background: linear-gradient(120deg, var(--v), #8a5cff 60%, var(--pink)); color: #fff; text-align: center; padding: 70px 24px; }
+  .final h2 { font-size: clamp(32px, 4.5vw, 56px); margin-bottom: 14px; }
+  .final form { display: flex; gap: 10px; justify-content: center; margin-top: 26px; flex-wrap: wrap; }
+  .final input { padding: 13px 16px; border-radius: 12px; border: 0; min-width: 280px; font: inherit; }
+  footer { padding: 26px 6vw; color: var(--muted); font-size: 13px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; border-top: 1px solid var(--line); }
+  @media (max-width: 900px) { nav .links { display: none; } nav .btn.ghost { display: none; } .shot { grid-template-columns: 1fr; height: auto; } .shot .s1, .shot .s2 { display: none; } .feats, .plans, .stats { grid-template-columns: 1fr; } .plan.pop { transform: none; } .final input { min-width: 0; width: 100%; } }
+</style>
+</head>
+<body>
+<nav><b><i></i>relaydesk</b><div class="links"><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a></div><a class="btn ghost" href="#">Log in</a><a class="btn dark" href="#pricing">Start free</a></nav>
+
+<header class="hero">
+  <div class="pill"><span>New</span> AI-drafted replies, reviewed by your team</div>
+  <h1>Every customer email,<br><em>answered together.</em></h1>
+  <p>Relaydesk turns your support@ inbox into a shared workspace: assign conversations, see who's replying, and never send two answers to the same customer.</p>
+  <div class="ctas"><a class="btn dark" href="#pricing">Start 14-day free trial →</a><a class="btn ghost" href="#features">See how it works</a></div>
+  <small>No credit card required · Set up in 5 minutes</small>
+  <div class="shot" aria-hidden="true">
+    <div class="s1"><div class="on">Inbox <b>12</b></div><div>Assigned to me <b>4</b></div><div>Waiting <b>7</b></div><div>Closed</div><div style="margin-top:14px;font-size:11px;text-transform:uppercase;letter-spacing:.08em">Tags</div><div>Billing</div><div>Bugs</div><div>Refunds</div></div>
+    <div class="s2" id="mails"></div>
+    <div class="s3"><span class="tagchip">Billing · assigned to Dana</span><div class="bubble them">Hi! I was charged twice for my October invoice. Can you help me get one refunded?</div><div class="bubble us">Hi Marcus, sorry about that! I can see the duplicate charge. I've refunded $49 — it'll show up in 3–5 days.</div><div class="typing"><i></i><i></i><i></i></div></div>
+  </div>
+</header>
+<div class="logos"><span>northwind</span><span>Lumora</span><span>quartz&co</span><span>BRIGHTLY</span><span>fieldnote</span></div>
+
+<section id="features">
+  <div class="center"><h2>Built for teams that care about replies</h2><p>Everything you need to answer faster, without losing the personal touch your customers love.</p></div>
+  <div class="feats">
+    <div class="feat"><div class="ic" style="background:#efeaff">👥</div><h3>Collision detection</h3><p>See instantly when a teammate is viewing or typing in a conversation, so nobody replies twice.</p></div>
+    <div class="feat"><div class="ic" style="background:#f2fbd9">⚡</div><h3>Saved replies</h3><p>Answer common questions in one click with templates that fill in the customer's name and order.</p></div>
+    <div class="feat"><div class="ic" style="background:#ffe8f3">🤖</div><h3>AI drafts</h3><p>Get a suggested answer based on your help center. Your team edits and approves before anything is sent.</p></div>
+    <div class="feat"><div class="ic" style="background:#e6f6ff">🏷️</div><h3>Rules & tags</h3><p>Route billing emails to finance, bugs to engineering, and VIPs to the top of the queue automatically.</p></div>
+    <div class="feat"><div class="ic" style="background:#fff3df">📈</div><h3>Reporting</h3><p>Track first-response time, volume by tag and customer satisfaction without spreadsheets.</p></div>
+    <div class="feat"><div class="ic" style="background:#eef0f4">🔌</div><h3>Integrations</h3><p>Connect Shopify, Stripe, Slack and 40+ tools to see order and billing details next to every email.</p></div>
+  </div>
+</section>
+
+<section style="padding-top:0"><div class="stats"><div><b data-to="62">0</b><span>% faster first response</span></div><div><b data-to="4800">0</b><span>support teams on Relaydesk</span></div><div><b data-to="98">0</b><span>% customer satisfaction</span></div></div></section>
+
+<section id="pricing">
+  <div class="center"><h2>Simple pricing</h2><p>Per teammate, per month. Cancel anytime.</p><div class="toggle" id="bill"><button class="on" data-y="0">Monthly</button><button data-y="1">Yearly <em>−20%</em></button></div></div>
+  <div class="plans">
+    <div class="plan"><h3>Starter</h3><div class="price" data-m="0">$0</div><span>For solo founders getting started.</span><ul><li>1 shared inbox</li><li>Up to 2 teammates</li><li>Saved replies</li><li>7-day history</li></ul><a class="btn ghost" href="#">Start free</a></div>
+    <div class="plan pop"><h3>Team</h3><div class="price" data-m="19"></div><span>Everything growing support teams need.</span><ul><li>Unlimited inboxes</li><li>Collision detection</li><li>Rules, tags & reporting</li><li>AI drafts (500/mo)</li></ul><a class="btn" href="#">Start free trial</a></div>
+    <div class="plan"><h3>Business</h3><div class="price" data-m="39"></div><span>Advanced control for larger teams.</span><ul><li>Everything in Team</li><li>SSO & audit log</li><li>Unlimited AI drafts</li><li>Dedicated success manager</li></ul><a class="btn dark" href="#">Contact sales</a></div>
+  </div>
+</section>
+
+<section id="faq" style="padding-top:0">
+  <div class="center"><h2>Questions? Answers.</h2></div>
+  <div class="faq">
+    <details open><summary>Do I need to change my email provider?</summary><p>No. Relaydesk connects to Gmail, Outlook or any IMAP inbox. Customers keep writing to the same address.</p></details>
+    <details><summary>Is the AI sending emails on its own?</summary><p>Never. AI only drafts a suggestion. A teammate always reviews, edits and clicks send.</p></details>
+    <details><summary>Can I import my old conversations?</summary><p>Yes, the last 12 months of email are imported automatically when you connect your inbox.</p></details>
+    <details><summary>What happens after the free trial?</summary><p>You choose a plan or drop to Starter. We never charge without asking first.</p></details>
+  </div>
+</section>
+
+<div class="final"><h2>Give your inbox a team.</h2><p style="opacity:.85;font-size:18px">Join 4,800 teams answering customers faster.</p><form id="cta"><input type="email" required placeholder="Work email" aria-label="Work email"><button class="btn dark">Get started</button></form><p id="thanks" style="display:none;font-weight:600">Thanks! Check your inbox to finish signing up (demo).</p></div>
+<footer><span>© 2026 Relaydesk — demo landing page, fictional product</span><span>Privacy · Terms · Status</span></footer>
+
+<script>
+  const MAILS = [['Marcus Lee', '2m', 'Charged twice for October'], ['Priya N.', '9m', 'How do I export my data?'], ['Tom Becker', '21m', 'Bug: the app freezes on login'], ['Sara Okafor', '1h', 'Can I add a teammate mid-month?'], ['Jules Martin', '2h', 'Love the new update!'], ['Ana Ruiz', '3h', 'Refund for unused seats']];
+  document.getElementById('mails').innerHTML = MAILS.map(([n, t, s], i) => `<div class="mail ${i ? '' : 'on'}" style="animation-delay:${i * 90}ms"><b>${n}<small>${t}</small></b><span>${s}</span></div>`).join('');
+
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('vis'); io.unobserve(e.target); } }), { threshold: .15 });
+  document.querySelectorAll('.feat').forEach((f, i) => { f.style.transitionDelay = (i % 3) * 90 + 'ms'; io.observe(f); });
+
+  const count = new IntersectionObserver((es) => es.forEach((e) => {
+    if (!e.isIntersecting) return; count.unobserve(e.target);
+    const to = +e.target.dataset.to, t0 = performance.now();
+    const tick = (now) => { const p = Math.min(1, (now - t0) / 1400); e.target.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))).toLocaleString('en-US'); if (p < 1) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  }), { threshold: .5 });
+  document.querySelectorAll('[data-to]').forEach((n) => count.observe(n));
+
+  function prices(yearly) {
+    document.querySelectorAll('.price[data-m]').forEach((p) => {
+      const m = +p.dataset.m, v = yearly ? Math.round(m * 0.8) : m;
+      p.innerHTML = `$${v}<small>${m ? ' /seat/mo' + (yearly ? ', billed yearly' : '') : ' forever'}</small>`;
+    });
+  }
+  document.getElementById('bill').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; document.querySelectorAll('#bill button').forEach((x) => x.classList.toggle('on', x === b)); prices(b.dataset.y === '1'); });
+  prices(false);
+  document.getElementById('cta').addEventListener('submit', (e) => { e.preventDefault(); e.target.style.display = 'none'; document.getElementById('thanks').style.display = 'block'; });
+</script>
+</body>
+</html>
