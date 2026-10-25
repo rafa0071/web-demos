@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skycast · Live Weather (demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --a: #3a7bd5; --b: #00d2ff; --glass: rgba(255, 255, 255, .16); --line: rgba(255, 255, 255, .22); }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; font-family: Outfit, sans-serif; color: #fff; background: linear-gradient(160deg, var(--a), var(--b)); transition: background 1s; }
+  body.night { --a: #141e30; --b: #35577d; }
+  body.rain { --a: #4b6075; --b: #8fa7b8; }
+  body.sun { --a: #f7971e; --b: #3a9bdc; }
+  button, input { font: inherit; color: inherit; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 26px 22px 40px; }
+  header { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 26px; }
+  header b { font-size: 22px; font-weight: 700; margin-right: auto; }
+  .search { position: relative; width: min(380px, 100%); }
+  .search input { width: 100%; background: var(--glass); border: 1px solid var(--line); border-radius: 14px; padding: 11px 16px; outline: none; backdrop-filter: blur(10px); }
+  .search input::placeholder { color: rgba(255, 255, 255, .7); }
+  .results { position: absolute; top: 48px; left: 0; right: 0; background: #fff; color: #1b2a3a; border-radius: 12px; overflow: hidden; z-index: 5; box-shadow: 0 16px 30px rgba(0, 0, 0, .2); }
+  .results button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 10px 14px; cursor: pointer; color: #1b2a3a; }
+  .results button:hover { background: #eef4fb; }
+  .units { display: flex; background: var(--glass); border: 1px solid var(--line); border-radius: 12px; padding: 3px; }
+  .units button { border: 0; background: none; padding: 6px 12px; border-radius: 9px; cursor: pointer; }
+  .units button.on { background: #fff; color: #1b2a3a; }
+  .now { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; margin-bottom: 20px; }
+  .panel { background: var(--glass); border: 1px solid var(--line); border-radius: 22px; padding: 24px; backdrop-filter: blur(14px); }
+  .city { font-size: 20px; font-weight: 500; }
+  .city small { display: block; opacity: .8; font-size: 14px; font-weight: 400; margin-top: 2px; }
+  .temp { display: flex; align-items: center; gap: 18px; margin: 18px 0 6px; }
+  .temp b { font-size: 96px; font-weight: 300; line-height: 1; letter-spacing: -.04em; }
+  .temp .ico { font-size: 70px; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .2)); }
+  .desc { font-size: 20px; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stat { background: rgba(255, 255, 255, .1); border-radius: 16px; padding: 14px; }
+  .stat small { opacity: .8; font-size: 13px; }
+  .stat b { display: block; font-size: 24px; font-weight: 600; margin-top: 4px; }
+  h3 { margin: 0 0 14px; font-weight: 500; font-size: 16px; opacity: .9; }
+  .hours { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+  .hour { flex: 0 0 72px; text-align: center; background: rgba(255, 255, 255, .1); border-radius: 16px; padding: 12px 6px; font-size: 14px; }
+  .hour span { display: block; font-size: 24px; margin: 6px 0; }
+  .hour.now-h { background: #fff; color: #1b2a3a; }
+  .days { display: grid; gap: 4px; }
+  .day { display: grid; grid-template-columns: 60px 34px 50px 1fr 50px; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .day:last-child { border: 0; }
+  .range { height: 6px; border-radius: 99px; background: rgba(255, 255, 255, .2); position: relative; }
+  .range i { position: absolute; top: 0; bottom: 0; border-radius: 99px; background: linear-gradient(90deg, #8fd3fe, #ffd36e, #ff8a5c); }
+  .grid2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; align-items: start; }
+  .msg { text-align: center; padding: 40px; opacity: .9; }
+  footer { margin-top: 20px; font-size: 12px; opacity: .75; text-align: center; }
+  footer a { color: inherit; }
+  @media (max-width: 860px) { .now, .grid2 { grid-template-columns: 1fr; } .temp b { font-size: 72px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <b>☁ skycast</b>
+    <div class="search"><input id="q" placeholder="Search a city…" autocomplete="off" aria-label="Search city"><div class="results" id="res" hidden></div></div>
+    <div class="units" id="units"><button class="on" data-u="c">°C</button><button data-u="f">°F</button></div>
+  </header>
+  <main id="main"><div class="panel msg">Loading live weather…</div></main>
+  <footer>Live data from <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> · demo project</footer>
+</div>
+<script>
+  const WMO = { 0: ['Clear sky', '☀️', '🌙'], 1: ['Mainly clear', '🌤️', '🌙'], 2: ['Partly cloudy', '⛅', '☁️'], 3: ['Overcast', '☁️', '☁️'], 45: ['Fog', '🌫️', '🌫️'], 48: ['Rime fog', '🌫️', '🌫️'], 51: ['Light drizzle', '🌦️', '🌧️'], 53: ['Drizzle', '🌦️', '🌧️'], 55: ['Heavy drizzle', '🌧️', '🌧️'], 61: ['Light rain', '🌦️', '🌧️'], 63: ['Rain', '🌧️', '🌧️'], 65: ['Heavy rain', '🌧️', '🌧️'], 71: ['Light snow', '🌨️', '🌨️'], 73: ['Snow', '❄️', '❄️'], 75: ['Heavy snow', '❄️', '❄️'], 80: ['Rain showers', '🌦️', '🌧️'], 81: ['Showers', '🌧️', '🌧️'], 82: ['Violent showers', '⛈️', '⛈️'], 95: ['Thunderstorm', '⛈️', '⛈️'], 96: ['Storm & hail', '⛈️', '⛈️'], 99: ['Storm & hail', '⛈️', '⛈️'] };
+  const w = (code, day = 1) => { const x = WMO[code] || ['—', '🌡️', '🌡️']; return { text: x[0], icon: day ? x[1] : x[2] }; };
+  let unit = 'c', place = null, data = null;
+  try { const saved = JSON.parse(localStorage.getItem('skycast')); if (saved) ({ unit, place } = saved); } catch {}
+  place = place || { name: 'Lisbon', country: 'Portugal', latitude: 38.72, longitude: -9.14 };
+  const $ = (id) => document.getElementById(id);
+  const T = (c) => Math.round(unit === 'c' ? c : c * 9 / 5 + 32) + '°';
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  async function load() {
+    $('main').innerHTML = '<div class="panel msg">Loading live weather…</div>';
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day,uv_index&hourly=temperature_2m,weather_code,is_day,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=auto&forecast_days=7`;
+    try {
+      const r = await fetch(url); if (!r.ok) throw new Error(r.status);
+      data = await r.json(); render();
+    } catch (e) { $('main').innerHTML = '<div class="panel msg">Could not load the forecast. Check your connection and try again.</div>'; }
+    try { localStorage.setItem('skycast', JSON.stringify({ unit, place })); } catch {}
+  }
+  function render() {
+    const c = data.current, d = data.daily, h = data.hourly;
+    const cw = w(c.weather_code, c.is_day);
+    document.body.className = !c.is_day ? 'night' : c.weather_code >= 51 ? 'rain' : c.weather_code <= 1 ? 'sun' : '';
+    const local = new Date(c.time);
+    const start = h.time.findIndex((t) => t >= c.time.slice(0, 13));
+    const hours = h.time.slice(Math.max(0, start), start + 24).map((t, i) => { const k = start + i; return `<div class="hour ${i === 0 ? 'now-h' : ''}">${i === 0 ? 'Now' : t.slice(11, 16)}<span>${w(h.weather_code[k], h.is_day[k]).icon}</span><b>${T(h.temperature_2m[k])}</b><div style="font-size:11px;opacity:.8">💧${h.precipitation_probability[k] ?? 0}%</div></div>`; }).join('');
+    const lo = Math.min(...d.temperature_2m_min), hi = Math.max(...d.temperature_2m_max);
+    const days = d.time.map((t, i) => `<div class="day"><span>${i ? new Date(t + 'T12:00').toLocaleDateString('en-US', { weekday: 'short' }) : 'Today'}</span><span>${w(d.weather_code[i]).icon}</span><span style="opacity:.75;text-align:right">${T(d.temperature_2m_min[i])}</span><div class="range"><i style="left:${(d.temperature_2m_min[i] - lo) / (hi - lo) * 100}%;right:${100 - (d.temperature_2m_max[i] - lo) / (hi - lo) * 100}%"></i></div><span>${T(d.temperature_2m_max[i])}</span></div>`).join('');
+    $('main').innerHTML = `<section class="now"><div class="panel"><div class="city">${esc(place.name)}<small>${esc(place.country || '')} · ${local.toLocaleDateString('en-US', { weekday: 'long', hour: '2-digit', minute: '2-digit' })} local time</small></div>
+      <div class="temp"><b>${T(c.temperature_2m)}</b><span class="ico">${cw.icon}</span></div><div class="desc">${cw.text} · H ${T(d.temperature_2m_max[0])} L ${T(d.temperature_2m_min[0])}</div></div>
+      <div class="panel stats"><div class="stat"><small>Feels like</small><b>${T(c.apparent_temperature)}</b></div><div class="stat"><small>Humidity</small><b>${c.relative_humidity_2m}%</b></div><div class="stat"><small>Wind</small><b>${Math.round(unit === 'c' ? c.wind_speed_10m : c.wind_speed_10m * 0.621)} ${unit === 'c' ? 'km/h' : 'mph'}</b></div><div class="stat"><small>UV index</small><b>${Math.round(c.uv_index ?? 0)}</b></div><div class="stat"><small>Sunrise</small><b>${d.sunrise[0].slice(11)}</b></div><div class="stat"><small>Sunset</small><b>${d.sunset[0].slice(11)}</b></div></div></section>
+      <section class="grid2"><div class="panel" style="min-width:0"><h3>Next 24 hours</h3><div class="hours">${hours}</div></div><div class="panel"><h3>7-day forecast</h3><div class="days">${days}</div></div></section>`;
+  }
+
+  let timer;
+  $('q').addEventListener('input', (e) => {
+    clearTimeout(timer); const q = e.target.value.trim();
+    if (q.length < 2) return ($('res').hidden = true);
+    timer = setTimeout(async () => {
+      try {
+        const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=5&language=en`);
+        const j = await r.json(); const list = j.results || [];
+        $('res').innerHTML = list.length ? list.map((p, i) => `<button data-i="${i}">${esc(p.name)}<small style="color:#6b7c8f"> · ${esc([p.admin1, p.country].filter(Boolean).join(', '))}</small></button>`).join('') : '<div style="padding:10px 14px">No matches</div>';
+        $('res').hidden = false; $('res').list = list;
+      } catch {}
+    }, 300);
+  });
+  $('res').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; place = $('res').list[b.dataset.i]; $('res').hidden = true; $('q').value = ''; load(); });
+  document.addEventListener('click', (e) => { if (!e.target.closest('.search')) $('res').hidden = true; });
+  $('units').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; unit = b.dataset.u; $('units').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b)); if (data) render(); try { localStorage.setItem('skycast', JSON.stringify({ unit, place })); } catch {} });
+  $('units').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x.dataset.u === unit));
+  load();
+</script>
+</body>
+</html>
