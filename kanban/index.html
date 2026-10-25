@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flowboard · Kanban Task Board (demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #f1f0f7; --col: #e7e5f1; --card: #fff; --ink: #1d1b2c; --muted: #6d6a85; --accent: #6d4aff; --line: #dcd9ea; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--ink); }
+  button, input, select, textarea { font: inherit; }
+  header { display: flex; align-items: center; gap: 16px; padding: 18px 28px; flex-wrap: wrap; }
+  header h1 { font-size: 20px; margin: 0; display: flex; align-items: center; gap: 10px; }
+  header h1 i { width: 28px; height: 28px; border-radius: 8px; background: conic-gradient(from 45deg, #6d4aff, #ff6bb5, #ffb547, #6d4aff); display: block; }
+  .search { margin-left: auto; padding: 9px 14px; border-radius: 10px; border: 1px solid var(--line); background: #fff; min-width: 220px; }
+  .avatars { display: flex; }
+  .avatars span { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--bg); margin-left: -8px; display: grid; place-items: center; color: #fff; font-size: 12px; font-weight: 700; }
+  .stats { display: flex; gap: 8px; padding: 0 28px 14px; flex-wrap: wrap; }
+  .stats button { border: 1px solid var(--line); background: #fff; border-radius: 99px; padding: 6px 14px; font-size: 13px; cursor: pointer; }
+  .stats button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .progress { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+  .progress em { width: 160px; height: 8px; border-radius: 99px; background: var(--col); overflow: hidden; display: block; }
+  .progress em i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), #ff6bb5); transition: width .4s; }
+  .board { display: grid; grid-template-columns: repeat(4, minmax(250px, 1fr)); gap: 16px; padding: 0 28px 28px; overflow-x: auto; }
+  .col { background: var(--col); border-radius: 16px; padding: 12px; min-height: 420px; display: flex; flex-direction: column; gap: 10px; transition: background .15s; }
+  .col.over { background: #dcd6f5; }
+  .col h2 { font-size: 14px; margin: 4px 6px 4px; display: flex; align-items: center; gap: 8px; }
+  .col h2 .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .col h2 small { margin-left: auto; color: var(--muted); font-weight: 600; background: #fff; border-radius: 99px; padding: 1px 9px; }
+  .card { background: var(--card); border-radius: 12px; padding: 12px 14px; box-shadow: 0 1px 2px rgba(30, 20, 80, .08); cursor: grab; border: 1px solid transparent; animation: pop .2s; }
+  .card:hover { border-color: var(--line); }
+  .card.drag { opacity: .4; }
+  @keyframes pop { from { transform: scale(.96); opacity: 0; } }
+  .card .tags { display: flex; gap: 6px; margin-bottom: 8px; }
+  .tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+  .card p { margin: 0 0 10px; font-size: 14px; font-weight: 600; line-height: 1.35; }
+  .meta { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); }
+  .meta .who { margin-left: auto; width: 24px; height: 24px; border-radius: 50%; color: #fff; display: grid; place-items: center; font-size: 10px; font-weight: 700; }
+  .due.late { color: #e5484d; font-weight: 700; }
+  .add { border: 1.5px dashed #bdb7d6; background: none; border-radius: 12px; padding: 10px; color: var(--muted); cursor: pointer; }
+  .add:hover { background: #fff; }
+  dialog { border: 0; border-radius: 16px; padding: 22px; width: min(420px, 92vw); box-shadow: 0 30px 60px rgba(20, 10, 60, .25); }
+  dialog::backdrop { background: rgba(29, 27, 44, .35); }
+  dialog form { display: grid; gap: 12px; }
+  dialog label { font-size: 12px; color: var(--muted); display: grid; gap: 5px; font-weight: 600; }
+  dialog input, dialog select { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .actions button { border: 0; border-radius: 10px; padding: 10px 16px; cursor: pointer; font-weight: 600; }
+  .primary { background: var(--accent); color: #fff; }
+  .danger { background: #ffe5e7; color: #c52d33; margin-right: auto; }
+  @media (max-width: 640px) { .search { min-width: 0; width: 100%; margin-left: 0; } .progress { margin-left: 0; } }
+</style>
+</head>
+<body>
+<header>
+  <h1><i></i>Website relaunch</h1>
+  <div class="avatars"><span style="background:#6d4aff">AK</span><span style="background:#ff6bb5">MJ</span><span style="background:#22a06b">TR</span><span style="background:#ffb547">LS</span></div>
+  <input class="search" id="search" placeholder="Search tasks…">
+</header>
+<div class="stats" id="filters">
+  <button class="on" data-f="all">All</button><button data-f="Design">Design</button><button data-f="Dev">Dev</button><button data-f="Content">Content</button><button data-f="mine">Assigned to me</button>
+  <div class="progress"><span id="pct">0% done</span><em><i id="bar"></i></em></div>
+</div>
+<main class="board" id="board"></main>
+<dialog id="dlg">
+  <form method="dialog" id="form">
+    <b id="dlg-title" style="font-size:17px">New task</b>
+    <label>Title<input name="title" required maxlength="90"></label>
+    <div class="row">
+      <label>Label<select name="tag"><option>Design</option><option>Dev</option><option>Content</option><option>Bug</option></select></label>
+      <label>Assignee<select name="who"><option>AK</option><option>MJ</option><option>TR</option><option>LS</option></select></label>
+    </div>
+    <div class="row">
+      <label>Due date<input type="date" name="due"></label>
+      <label>Priority<select name="prio"><option>Low</option><option selected>Medium</option><option>High</option></select></label>
+    </div>
+    <div class="actions"><button type="button" class="danger" id="del">Delete</button><button value="cancel" formnovalidate>Cancel</button><button class="primary" value="ok">Save</button></div>
+  </form>
+</dialog>
+<script>
+  const COLS = [['todo', 'To do', '#8e8aa8'], ['doing', 'In progress', '#6d4aff'], ['review', 'Review', '#ffb547'], ['done', 'Done', '#22a06b']];
+  const TAG = { Design: ['#ffe4f2', '#c0277a'], Dev: ['#e6e0ff', '#5531e0'], Content: ['#fff1d6', '#a0610a'], Bug: ['#ffe5e7', '#c52d33'] };
+  const WHO = { AK: '#6d4aff', MJ: '#ff6bb5', TR: '#22a06b', LS: '#ffb547' };
+  const ME = 'AK';
+  const d = (n) => { const x = new Date(); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
+  const SEED = [
+    ['todo', 'Write copy for pricing page', 'Content', 'LS', 4, 'Medium'], ['todo', 'Set up cookie consent banner', 'Dev', 'TR', 6, 'Low'], ['todo', 'Collect customer testimonials', 'Content', 'MJ', 9, 'Low'],
+    ['doing', 'Homepage hero animation', 'Design', 'AK', 2, 'High'], ['doing', 'Connect contact form to CRM', 'Dev', 'TR', 1, 'High'], ['doing', 'Mobile menu overlaps logo', 'Bug', 'AK', -1, 'High'],
+    ['review', 'Blog article template', 'Design', 'MJ', 3, 'Medium'], ['review', 'Lighthouse performance pass', 'Dev', 'AK', 5, 'Medium'],
+    ['done', 'Brand color tokens', 'Design', 'MJ', -4, 'Medium'], ['done', 'Sitemap & redirects', 'Dev', 'TR', -2, 'Low'],
+  ];
+  let tasks;
+  try { tasks = JSON.parse(localStorage.getItem('flowboard')); } catch {}
+  if (!tasks) tasks = SEED.map(([col, title, tag, who, due, prio], i) => ({ id: i + 1, col, title, tag, who, due: d(due), prio }));
+  const save = () => { try { localStorage.setItem('flowboard', JSON.stringify(tasks)); } catch {} };
+  let filter = 'all', query = '', editing = null, newCol = 'todo';
+  const board = document.getElementById('board');
+
+  function render() {
+    const today = d(0);
+    board.innerHTML = '';
+    for (const [key, name, color] of COLS) {
+      const list = tasks.filter((t) => t.col === key && (filter === 'all' || (filter === 'mine' ? t.who === ME : t.tag === filter)) && t.title.toLowerCase().includes(query));
+      const col = document.createElement('section'); col.className = 'col'; col.dataset.col = key;
+      col.innerHTML = `<h2><span class="dot" style="background:${color}"></span>${name}<small>${list.length}</small></h2>` + list.map((t) => {
+        const late = t.due < today && t.col !== 'done';
+        const due = new Date(t.due + 'T12:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        return `<article class="card" draggable="true" data-id="${t.id}"><div class="tags"><span class="tag" style="background:${TAG[t.tag][0]};color:${TAG[t.tag][1]}">${t.tag}</span>${t.prio === 'High' ? '<span class="tag" style="background:#ffe5e7;color:#c52d33">High</span>' : ''}</div><p></p><div class="meta"><span class="due ${late ? 'late' : ''}">◷ ${late ? 'Overdue · ' : ''}${due}</span><span class="who" style="background:${WHO[t.who]}">${t.who}</span></div></article>`;
+      }).join('') + `<button class="add" data-col="${key}">+ Add task</button>`;
+      // Titles go in via textContent so user input is never parsed as HTML
+      col.querySelectorAll('.card p').forEach((p, i) => (p.textContent = list[i].title));
+      board.append(col);
+    }
+    const pct = tasks.length ? Math.round(tasks.filter((t) => t.col === 'done').length / tasks.length * 100) : 0;
+    document.getElementById('pct').textContent = pct + '% done';
+    document.getElementById('bar').style.width = pct + '%';
+  }
+
+  board.addEventListener('dragstart', (e) => { const c = e.target.closest('.card'); if (!c) return; e.dataTransfer.setData('text/plain', c.dataset.id); c.classList.add('drag'); });
+  board.addEventListener('dragend', (e) => e.target.classList?.remove('drag'));
+  board.addEventListener('dragover', (e) => { const col = e.target.closest('.col'); if (!col) return; e.preventDefault(); document.querySelectorAll('.col').forEach((c) => c.classList.toggle('over', c === col)); });
+  board.addEventListener('dragleave', (e) => { if (!e.relatedTarget || !board.contains(e.relatedTarget)) document.querySelectorAll('.col').forEach((c) => c.classList.remove('over')); });
+  board.addEventListener('drop', (e) => {
+    const col = e.target.closest('.col'); if (!col) return; e.preventDefault();
+    const t = tasks.find((x) => x.id === +e.dataTransfer.getData('text/plain'));
+    if (t) { t.col = col.dataset.col; save(); render(); }
+  });
+
+  const dlg = document.getElementById('dlg'), form = document.getElementById('form');
+  function open(task, col) {
+    editing = task; newCol = col || 'todo';
+    document.getElementById('dlg-title').textContent = task ? 'Edit task' : 'New task';
+    document.getElementById('del').style.display = task ? '' : 'none';
+    form.title.value = task?.title || ''; form.tag.value = task?.tag || 'Dev'; form.who.value = task?.who || ME; form.due.value = task?.due || d(7); form.prio.value = task?.prio || 'Medium';
+    dlg.returnValue = ''; dlg.showModal(); form.title.focus();
+  }
+  board.addEventListener('click', (e) => {
+    const add = e.target.closest('.add'); if (add) return open(null, add.dataset.col);
+    const c = e.target.closest('.card'); if (c) open(tasks.find((t) => t.id === +c.dataset.id));
+  });
+  dlg.addEventListener('close', () => {
+    if (dlg.returnValue !== 'ok') return;
+    const data = { title: form.title.value.trim(), tag: form.tag.value, who: form.who.value, due: form.due.value || d(7), prio: form.prio.value };
+    if (!data.title) return;
+    editing ? Object.assign(editing, data) : tasks.push({ id: Math.max(0, ...tasks.map((t) => t.id)) + 1, col: newCol, ...data });
+    save(); render();
+  });
+  document.getElementById('del').onclick = () => { tasks = tasks.filter((t) => t !== editing); save(); dlg.close(); render(); };
+  document.getElementById('filters').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    filter = b.dataset.f; document.querySelectorAll('#filters button').forEach((x) => x.classList.toggle('on', x === b)); render();
+  });
+  document.getElementById('search').addEventListener('input', (e) => { query = e.target.value.toLowerCase(); render(); });
+  render();
+</script>
+</body>
+</html>
