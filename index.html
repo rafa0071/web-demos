@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Web Demos · Rafael Rojas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #f7f7f9; --ink: #111827; --muted: #6b7280; --line: #e5e7eb; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Inter, sans-serif; background: var(--bg); color: var(--ink); }
+  header { max-width: 1160px; margin: 0 auto; padding: 56px 20px 28px; }
+  h1 { font-size: clamp(30px, 4vw, 44px); margin: 0 0 10px; letter-spacing: -.02em; }
+  header p { color: var(--muted); font-size: 17px; max-width: 640px; line-height: 1.6; margin: 0; }
+  main { max-width: 1160px; margin: 0 auto; padding: 0 20px 60px; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 22px; }
+  a.card { background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; text-decoration: none; color: inherit; transition: transform .2s, box-shadow .2s; display: flex; flex-direction: column; }
+  a.card:hover { transform: translateY(-3px); box-shadow: 0 16px 34px -20px rgba(0, 0, 0, .35); }
+  img { width: 100%; height: auto; display: block; aspect-ratio: 16 / 10; object-fit: cover; border-bottom: 1px solid var(--line); }
+  .body { padding: 16px 18px 18px; }
+  h2 { font-size: 17px; margin: 0 0 6px; }
+  .body p { margin: 0 0 12px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tags span { font-size: 12px; background: #f1f2f6; border-radius: 99px; padding: 3px 9px; color: #374151; }
+  footer { text-align: center; color: var(--muted); font-size: 13px; padding: 0 20px 40px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Web demos</h1>
+  <p>Ten small, working web apps and sites that show the kind of front-end work I deliver: dashboards, stores, booking flows, tools and landing pages. All brands and data are fictional.</p>
+</header>
+<main id="list"></main>
+<footer>Each demo is a single, dependency-free HTML file · MIT License</footer>
+<script>
+  const DEMOS = [
+    ['sales-dashboard', 'Sales analytics dashboard', 'KPI cards, interactive SVG charts with tooltips, sortable orders table and date-range switch.', ['Dashboard', 'SVG charts', 'Vanilla JS']],
+    ['restaurant', 'Restaurant website', 'Menu with category tabs and a reservation form with validation and opening-hour aware time slots.', ['Website', 'Forms', 'Responsive']],
+    ['shop', 'Online store with cart', 'Product grid with filters, sorting, color variants and a slide-out cart saved in the browser.', ['E-commerce', 'Cart', 'localStorage']],
+    ['kanban', 'Kanban task board', 'Drag-and-drop tasks between columns, create/edit dialog, filters, search and progress bar.', ['Web app', 'Drag & drop', 'CRUD']],
+    ['invoice', 'Invoice generator', 'Editable invoice with line items, tax and discount, currencies, PDF via print and JSON export.', ['Tool', 'Print CSS', 'Intl API']],
+    ['real-estate', 'Real-estate listings', 'Search and filter homes, save favorites and estimate mortgage payments in a detail dialog.', ['Listings', 'Filters', 'Calculator']],
+    ['booking', 'Appointment booking flow', 'Four-step booking: service, calendar with free slots, client details and add-to-calendar file.', ['Booking', 'Calendar', 'Multi-step']],
+    ['budget', 'Personal budget tracker', 'Track income and spending by month, category donut chart, budget limits and CSV export.', ['Finance', 'Charts', 'CSV']],
+    ['weather', 'Live weather app', 'City search and live 24-hour and 7-day forecast from the Open-Meteo API, °C/°F switch.', ['API', 'fetch', 'Async JS']],
+    ['saas-landing', 'SaaS landing page', 'Product hero with UI mock, scroll animations, animated counters, pricing toggle and FAQ.', ['Landing page', 'Animation', 'Conversion']],
+  ];
+  document.getElementById('list').innerHTML = DEMOS.map(([slug, title, desc, tags]) => `<a class="card" href="${slug}/"><img src="shots/${slug}.png" alt="${title} screenshot" loading="lazy" width="640" height="400"><div class="body"><h2>${title}</h2><p>${desc}</p><div class="tags">${tags.map((t) => `<span>${t}</span>`).join('')}</div></div></a>`).join('');
+</script>
+</body>
+</html>
