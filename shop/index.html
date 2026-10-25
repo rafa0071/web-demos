@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kettle & Co · Online Store (demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #fafaf7; --ink: #151515; --muted: #6b6b6b; --line: #e7e5df; --accent: #1f6f5c; --sale: #d9480f; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Manrope, sans-serif; background: var(--bg); color: var(--ink); }
+  button { font: inherit; cursor: pointer; }
+  .bar { background: var(--ink); color: #fff; text-align: center; font-size: 13px; padding: 8px; }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 18px 5vw; border-bottom: 1px solid var(--line); background: #fff; position: sticky; top: 0; z-index: 4; }
+  header b { font-size: 21px; font-weight: 800; letter-spacing: -.02em; }
+  header nav { display: flex; gap: 24px; font-size: 14px; color: var(--muted); }
+  .cart-btn { border: 1px solid var(--line); background: #fff; border-radius: 99px; padding: 8px 16px; display: flex; gap: 8px; align-items: center; }
+  .cart-btn span { background: var(--accent); color: #fff; border-radius: 99px; min-width: 22px; height: 22px; display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+  .cart-btn.bump { animation: bump .35s; }
+  @keyframes bump { 50% { transform: scale(1.12); } }
+  .wrap { padding: 28px 5vw 60px; }
+  .crumbs { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; align-items: center; }
+  .filters button { border: 1px solid var(--line); background: #fff; border-radius: 99px; padding: 8px 16px; font-size: 14px; }
+  .filters button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .filters select { margin-left: auto; font: inherit; font-size: 14px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: #fff; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+  .p { background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; transition: transform .2s, box-shadow .2s; }
+  .p:hover { transform: translateY(-3px); box-shadow: 0 14px 30px -18px rgba(0, 0, 0, .3); }
+  .img { aspect-ratio: 4 / 3.4; display: grid; place-items: center; position: relative; }
+  .img svg { width: 56%; }
+  .img .sale { position: absolute; top: 12px; left: 12px; background: var(--sale); color: #fff; font-size: 11px; font-weight: 800; padding: 4px 9px; border-radius: 99px; }
+  .info { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .info h3 { margin: 0; font-size: 15px; }
+  .info small { color: var(--muted); }
+  .price { font-weight: 800; }
+  .price s { color: var(--muted); font-weight: 500; margin-left: 6px; }
+  .sw { display: flex; gap: 6px; margin: 4px 0 8px; }
+  .sw button { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #fff; outline: 1px solid var(--line); padding: 0; }
+  .sw button.on { outline: 2px solid var(--ink); }
+  .add { margin-top: auto; border: 0; background: var(--accent); color: #fff; padding: 11px; border-radius: 10px; font-weight: 700; }
+  .add:active { transform: scale(.98); }
+  .stars { color: #e8a317; font-size: 13px; }
+  .drawer { position: fixed; inset: 0 0 0 auto; width: min(420px, 100%); background: #fff; z-index: 10; transform: translateX(100%); transition: transform .3s ease, box-shadow .3s; display: flex; flex-direction: column; }
+  .drawer.open { transform: none; box-shadow: -20px 0 40px rgba(0, 0, 0, .12); }
+  .shade { position: fixed; inset: 0; background: rgba(0, 0, 0, .3); z-index: 9; opacity: 0; pointer-events: none; transition: opacity .3s; }
+  .shade.open { opacity: 1; pointer-events: auto; }
+  .drawer header { position: static; }
+  .lines { flex: 1; overflow: auto; padding: 8px 20px; }
+  .line { display: grid; grid-template-columns: 64px 1fr auto; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .line .thumb { width: 64px; height: 64px; border-radius: 10px; display: grid; place-items: center; }
+  .line .thumb svg { width: 60%; }
+  .qty { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; margin-top: 6px; }
+  .qty button { border: 0; background: none; width: 28px; height: 28px; }
+  .qty span { width: 26px; text-align: center; line-height: 28px; font-size: 14px; }
+  .sum { padding: 18px 20px; border-top: 1px solid var(--line); display: grid; gap: 8px; font-size: 14px; }
+  .sum div { display: flex; justify-content: space-between; }
+  .ship { height: 6px; border-radius: 99px; background: #eee; overflow: hidden; }
+  .ship i { display: block; height: 100%; background: var(--accent); transition: width .3s; }
+  .checkout { border: 0; background: var(--ink); color: #fff; padding: 15px; border-radius: 12px; font-weight: 700; margin-top: 6px; }
+  .empty { text-align: center; color: var(--muted); padding: 60px 0; }
+  .x { border: 0; background: none; font-size: 22px; }
+  @media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, 1fr); } header nav { display: none; } }
+  @media (max-width: 480px) { .grid { grid-template-columns: 1fr; } .filters select { margin-left: 0; } }
+</style>
+</head>
+<body>
+<div class="bar">Free shipping on orders over $80 · Demo store, fictional products</div>
+<header><b>Kettle & Co.</b><nav><span>Shop</span><span>Brewing guides</span><span>Gift cards</span><span>About</span></nav><button class="cart-btn" id="cart-btn">Cart <span id="count">0</span></button></header>
+<div class="wrap">
+  <div class="crumbs">Home / Shop / All products</div>
+  <div class="filters" id="filters">
+    <button class="on" data-c="all">All</button><button data-c="kettle">Kettles</button><button data-c="cup">Cups</button><button data-c="tea">Tea</button>
+    <select id="sort"><option value="pop">Most popular</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option></select>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+<div class="shade" id="shade"></div>
+<aside class="drawer" id="drawer" aria-label="Shopping cart">
+  <header><b style="font-size:18px">Your cart</b><button class="x" id="close" aria-label="Close">×</button></header>
+  <div class="lines" id="lines"></div>
+  <div class="sum" id="sum"></div>
+</aside>
+<script>
+  const ICON = {
+    kettle: (c) => `<svg viewBox="0 0 100 100"><path d="M22 40 Q20 86 50 86 Q80 86 78 40 Z" fill="${c}"/><rect x="30" y="32" width="40" height="10" rx="5" fill="${c}" opacity=".8"/><path d="M78 48 Q96 50 92 66" stroke="${c}" stroke-width="6" fill="none"/><path d="M22 50 L6 40" stroke="${c}" stroke-width="7" stroke-linecap="round"/><path d="M38 30 Q50 14 62 30" stroke="#333" stroke-width="5" fill="none"/></svg>`,
+    cup: (c) => `<svg viewBox="0 0 100 100"><path d="M18 34 H74 L68 80 Q66 88 58 88 H34 Q26 88 24 80 Z" fill="${c}"/><path d="M74 44 Q92 44 90 60 Q88 72 70 70" stroke="${c}" stroke-width="7" fill="none"/><path d="M36 14 Q42 22 36 28 M50 10 Q56 18 50 26" stroke="#bbb" stroke-width="3" fill="none"/></svg>`,
+    tea: (c) => `<svg viewBox="0 0 100 100"><rect x="24" y="22" width="52" height="68" rx="8" fill="${c}"/><rect x="24" y="14" width="52" height="14" rx="5" fill="#333"/><circle cx="50" cy="58" r="14" fill="#fff" opacity=".85"/><path d="M44 58 Q50 46 56 58 Q50 66 44 58" fill="${c}"/></svg>`,
+  };
+  const PRODUCTS = [
+    { id: 1, name: 'Gooseneck Pour-Over Kettle', cat: 'kettle', price: 64, was: 79, rating: 4.8, reviews: 312, colors: ['#1f6f5c', '#151515', '#c9c2b4'] },
+    { id: 2, name: 'Stovetop Enamel Kettle', cat: 'kettle', price: 48, rating: 4.6, reviews: 158, colors: ['#d9480f', '#2f4b7c', '#f2e8cf'] },
+    { id: 3, name: 'Stoneware Mug, 12 oz', cat: 'cup', price: 18, rating: 4.9, reviews: 540, colors: ['#8a9a5b', '#e9e1d4', '#3d405b'] },
+    { id: 4, name: 'Double-Wall Glass Cup', cat: 'cup', price: 22, was: 28, rating: 4.5, reviews: 97, colors: ['#9ec5d6', '#d8d8d8'] },
+    { id: 5, name: 'Sencha Green Tea, 100 g', cat: 'tea', price: 16, rating: 4.7, reviews: 221, colors: ['#6a994e'] },
+    { id: 6, name: 'Earl Grey Blue Flower', cat: 'tea', price: 14, rating: 4.4, reviews: 133, colors: ['#457b9d'] },
+    { id: 7, name: 'Electric Kettle, Temp Control', cat: 'kettle', price: 89, rating: 4.7, reviews: 406, colors: ['#151515', '#e9e1d4'] },
+    { id: 8, name: 'Ceramic Tasting Cups, set of 4', cat: 'cup', price: 34, rating: 4.8, reviews: 76, colors: ['#bc6c25', '#e9e1d4'] },
+  ];
+  const BG = { kettle: '#eef3ef', cup: '#f6efe6', tea: '#edf1f6' };
+  const state = { cat: 'all', sort: 'pop', color: {}, cart: load() };
+  function load() { try { return JSON.parse(localStorage.getItem('kc-cart')) || []; } catch { return []; } }
+  function save() { try { localStorage.setItem('kc-cart', JSON.stringify(state.cart)); } catch {} }
+  const $ = (s) => document.querySelector(s);
+  const money = (n) => '$' + n.toFixed(2);
+
+  function renderGrid() {
+    let list = PRODUCTS.filter((p) => state.cat === 'all' || p.cat === state.cat);
+    if (state.sort === 'low') list = [...list].sort((a, b) => a.price - b.price);
+    if (state.sort === 'high') list = [...list].sort((a, b) => b.price - a.price);
+    if (state.sort === 'pop') list = [...list].sort((a, b) => b.reviews - a.reviews);
+    $('#grid').innerHTML = list.map((p) => {
+      const c = state.color[p.id] || p.colors[0];
+      return `<article class="p"><div class="img" style="background:${BG[p.cat]}">${p.was ? '<span class="sale">SALE</span>' : ''}${ICON[p.cat](c)}</div>
+        <div class="info"><h3>${p.name}</h3><span class="stars">${'★'.repeat(Math.round(p.rating))}<small> ${p.rating} (${p.reviews})</small></span>
+        <span class="price">${money(p.price)}${p.was ? `<s>${money(p.was)}</s>` : ''}</span>
+        <div class="sw">${p.colors.map((x) => `<button aria-label="Color" data-id="${p.id}" data-c="${x}" class="${x === c ? 'on' : ''}" style="background:${x}"></button>`).join('')}</div>
+        <button class="add" data-add="${p.id}">Add to cart</button></div></article>`;
+    }).join('');
+  }
+  function renderCart() {
+    const n = state.cart.reduce((s, l) => s + l.qty, 0);
+    $('#count').textContent = n;
+    if (!state.cart.length) { $('#lines').innerHTML = '<div class="empty">Your cart is empty.</div>'; $('#sum').innerHTML = ''; return; }
+    $('#lines').innerHTML = state.cart.map((l, i) => { const p = PRODUCTS.find((x) => x.id === l.id); return `<div class="line"><div class="thumb" style="background:${BG[p.cat]}">${ICON[p.cat](l.color)}</div><div><b style="font-size:14px">${p.name}</b><br><div class="qty"><button data-q="${i}" data-d="-1">−</button><span>${l.qty}</span><button data-q="${i}" data-d="1">+</button></div></div><b>${money(p.price * l.qty)}</b></div>`; }).join('');
+    const sub = state.cart.reduce((s, l) => s + PRODUCTS.find((p) => p.id === l.id).price * l.qty, 0);
+    const ship = sub >= 80 ? 0 : 6.5, tax = sub * 0.08;
+    $('#sum').innerHTML = `<div style="font-size:13px;color:var(--muted)">${sub >= 80 ? 'You unlocked free shipping 🎉' : `Add ${money(80 - sub)} more for free shipping`}</div><div class="ship"><i style="width:${Math.min(100, sub / 80 * 100)}%"></i></div>
+      <div><span>Subtotal</span><span>${money(sub)}</span></div><div><span>Shipping</span><span>${ship ? money(ship) : 'Free'}</span></div><div><span>Estimated tax</span><span>${money(tax)}</span></div>
+      <div style="font-size:17px;font-weight:800"><span>Total</span><span>${money(sub + ship + tax)}</span></div><button class="checkout" onclick="alert('Demo store — checkout would connect to Stripe or Shopify here.')">Checkout</button>`;
+  }
+  function openCart(o) { $('#drawer').classList.toggle('open', o); $('#shade').classList.toggle('open', o); }
+
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('button'); if (!t) return;
+    if (t.dataset.c && t.closest('#filters')) { state.cat = t.dataset.c; document.querySelectorAll('#filters button').forEach((b) => b.classList.toggle('on', b === t)); renderGrid(); }
+    else if (t.dataset.c) { state.color[t.dataset.id] = t.dataset.c; renderGrid(); }
+    else if (t.dataset.add) {
+      const id = +t.dataset.add, p = PRODUCTS.find((x) => x.id === id), color = state.color[id] || p.colors[0];
+      const l = state.cart.find((x) => x.id === id && x.color === color);
+      l ? l.qty++ : state.cart.push({ id, color, qty: 1 });
+      save(); renderCart();
+      t.textContent = 'Added ✓'; setTimeout(() => (t.textContent = 'Add to cart'), 1100);
+      $('#cart-btn').classList.remove('bump'); void $('#cart-btn').offsetWidth; $('#cart-btn').classList.add('bump');
+    } else if (t.dataset.q) {
+      const l = state.cart[t.dataset.q]; l.qty += +t.dataset.d;
+      if (l.qty <= 0) state.cart.splice(t.dataset.q, 1);
+      save(); renderCart();
+    }
+  });
+  $('#sort').onchange = (e) => { state.sort = e.target.value; renderGrid(); };
+  $('#cart-btn').onclick = () => openCart(true);
+  $('#close').onclick = $('#shade').onclick = () => openCart(false);
+  renderGrid(); renderCart();
+</script>
+</body>
+</html>
