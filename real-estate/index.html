@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Haven Homes · Property Listings (demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #f6f5f2; --ink: #1c2321; --muted: #69726f; --line: #e3e1db; --accent: #1f4e46; --gold: #c99a3a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Figtree, sans-serif; background: var(--bg); color: var(--ink); }
+  button, input, select { font: inherit; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 5vw; }
+  nav b { font-family: 'DM Serif Display', serif; font-size: 26px; font-weight: 400; }
+  nav b span { color: var(--gold); }
+  nav div { display: flex; gap: 24px; font-size: 14px; color: var(--muted); }
+  .hero { margin: 0 5vw; border-radius: 22px; padding: 56px 48px 90px; background: linear-gradient(120deg, rgba(31, 78, 70, .96), rgba(31, 78, 70, .78)), repeating-linear-gradient(45deg, #2b5f56 0 2px, transparent 2px 22px); color: #fff; position: relative; }
+  .hero h1 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(36px, 5vw, 64px); margin: 0 0 10px; line-height: 1.05; }
+  .hero p { opacity: .8; margin: 0; font-size: 17px; }
+  .search { position: absolute; left: 48px; right: 48px; bottom: -38px; background: #fff; border-radius: 16px; box-shadow: 0 20px 40px -20px rgba(0, 0, 0, .35); display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr auto; gap: 0; padding: 10px; }
+  .search label { display: grid; gap: 2px; padding: 6px 16px; border-right: 1px solid var(--line); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+  .search label:last-of-type { border: 0; }
+  .search input, .search select { border: 0; padding: 4px 0; font-size: 15px; color: var(--ink); background: none; outline: none; text-transform: none; letter-spacing: 0; font-weight: 500; }
+  .search button { background: var(--accent); color: #fff; border: 0; border-radius: 12px; padding: 0 26px; font-weight: 700; cursor: pointer; }
+  .bar { display: flex; align-items: center; justify-content: space-between; padding: 70px 5vw 16px; gap: 12px; flex-wrap: wrap; }
+  .bar h2 { margin: 0; font-size: 20px; }
+  .bar .r { display: flex; gap: 10px; align-items: center; }
+  .chip { border: 1px solid var(--line); background: #fff; border-radius: 99px; padding: 7px 14px; font-size: 13px; cursor: pointer; }
+  .chip.on { background: var(--ink); color: #fff; }
+  .bar select { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; background: #fff; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; padding: 0 5vw 60px; }
+  .home { background: #fff; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); cursor: pointer; transition: box-shadow .2s, transform .2s; }
+  .home:hover { box-shadow: 0 18px 34px -20px rgba(0, 0, 0, .35); transform: translateY(-2px); }
+  .pic { height: 190px; position: relative; overflow: hidden; }
+  .pic svg { width: 100%; height: 100%; display: block; }
+  .pic .lbl { position: absolute; top: 12px; left: 12px; background: #fff; border-radius: 99px; padding: 4px 10px; font-size: 12px; font-weight: 700; }
+  .fav { position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, .92); cursor: pointer; font-size: 17px; color: #999; }
+  .fav.on { color: #e5484d; }
+  .body { padding: 16px 18px 18px; }
+  .price { font-size: 22px; font-weight: 700; }
+  .body h3 { margin: 4px 0 2px; font-size: 15px; font-weight: 600; }
+  .body small { color: var(--muted); }
+  .specs { display: flex; gap: 16px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+  .specs b { color: var(--ink); }
+  .none { grid-column: 1 / -1; text-align: center; padding: 60px; color: var(--muted); }
+  dialog { border: 0; border-radius: 20px; padding: 0; width: min(760px, 94vw); overflow: hidden; }
+  dialog::backdrop { background: rgba(20, 30, 28, .55); }
+  .d-grid { display: grid; grid-template-columns: 1.1fr 1fr; }
+  .d-pic svg { width: 100%; height: 100%; display: block; min-height: 300px; }
+  .d-body { padding: 24px; display: grid; gap: 10px; align-content: start; }
+  .d-body h3 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 28px; margin: 0; }
+  .calc { background: var(--bg); border-radius: 12px; padding: 14px; display: grid; gap: 8px; font-size: 13px; }
+  .calc input[type=range] { width: 100%; accent-color: var(--accent); }
+  .calc .pay { font-size: 26px; font-weight: 700; color: var(--accent); }
+  .close { position: absolute; top: 12px; right: 12px; border: 0; background: #fff; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 18px; }
+  .cta { background: var(--accent); color: #fff; border: 0; border-radius: 10px; padding: 12px; font-weight: 700; cursor: pointer; }
+  @media (max-width: 980px) { .grid { grid-template-columns: repeat(2, 1fr); } .search { position: static; grid-template-columns: 1fr 1fr; margin-top: 24px; gap: 6px; } .search label { border: 0; } .hero { padding: 36px 24px; } .bar { padding-top: 26px; } nav div { display: none; } .d-grid { grid-template-columns: 1fr; } .d-pic svg { min-height: 200px; } }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } .search { grid-template-columns: 1fr; } .search button { padding: 12px; } }
+</style>
+</head>
+<body>
+<nav><b>Haven<span>.</span></b><div><span>Buy</span><span>Rent</span><span>Sell</span><span>Agents</span></div><button class="chip" id="saved">♥ Saved (0)</button></nav>
+<header class="hero">
+  <h1>Find a place<br>that feels like home.</h1>
+  <p>Hand-picked homes in Lakeside County, verified by local agents.</p>
+  <form class="search" id="search">
+    <label>Location<input name="q" placeholder="Neighborhood or street"></label>
+    <label>Type<select name="type"><option value="">Any</option><option>House</option><option>Apartment</option><option>Townhouse</option></select></label>
+    <label>Max price<select name="max"><option value="">No limit</option><option value="400000">$400k</option><option value="600000">$600k</option><option value="900000">$900k</option></select></label>
+    <label>Bedrooms<select name="beds"><option value="0">Any</option><option value="2">2+</option><option value="3">3+</option><option value="4">4+</option></select></label>
+    <button>Search</button>
+  </form>
+</header>
+<div class="bar">
+  <h2 id="count"></h2>
+  <div class="r"><button class="chip" id="onlyFav">Only saved</button><select id="sort"><option value="new">Newest</option><option value="low">Price ↑</option><option value="high">Price ↓</option><option value="size">Largest</option></select></div>
+</div>
+<main class="grid" id="grid"></main>
+<dialog id="dlg"><button class="close" onclick="dlg.close()" aria-label="Close">×</button><div class="d-grid" id="detail"></div></dialog>
+<script>
+  // Simple generated illustration so every listing has a distinct "photo"
+  function art(h, seed) {
+    const sky = ['#cfe3ea', '#f4dcc6', '#dfe7d2', '#e4dcef'][seed % 4];
+    const wall = ['#f2efe8', '#d9c3a5', '#b9cbd0', '#e6d2c4', '#c7c0b4'][seed % 5];
+    const roof = ['#3b4a48', '#8a4b32', '#5a5a66', '#2f3e57'][seed % 4];
+    if (h.type === 'Apartment') {
+      let win = '';
+      for (let r = 0; r < 5; r++) for (let c = 0; c < 4; c++) win += `<rect x="${120 + c * 42}" y="${40 + r * 30}" width="24" height="18" fill="${(r + c + seed) % 3 ? '#8fb3c4' : '#ffe2a8'}"/>`;
+      return `<svg viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice"><rect width="400" height="220" fill="${sky}"/><circle cx="330" cy="50" r="22" fill="#fff6dc"/><rect x="100" y="24" width="190" height="200" fill="${wall}"/><rect x="290" y="80" width="70" height="150" fill="${roof}" opacity=".7"/>${win}<rect y="196" width="400" height="24" fill="#9db58b"/></svg>`;
+    }
+    const w = h.type === 'Townhouse' ? 120 : 190, x = 200 - w / 2;
+    return `<svg viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice"><rect width="400" height="220" fill="${sky}"/><circle cx="${60 + seed * 37 % 280}" cy="46" r="20" fill="#fff6dc"/>
+      <ellipse cx="60" cy="190" rx="70" ry="40" fill="#7fa36b"/><ellipse cx="350" cy="196" rx="80" ry="40" fill="#8db177"/>
+      <rect x="${x}" y="100" width="${w}" height="100" fill="${wall}"/><path d="M${x - 14} 104 L200 ${h.type === 'Townhouse' ? 44 : 50} L${x + w + 14} 104 Z" fill="${roof}"/>
+      <rect x="188" y="146" width="26" height="54" fill="${roof}" opacity=".85"/><rect x="${x + 18}" y="122" width="30" height="26" fill="#ffe2a8"/><rect x="${x + w - 48}" y="122" width="30" height="26" fill="#8fb3c4"/>
+      <rect y="198" width="400" height="22" fill="#9db58b"/><circle cx="${x - 30}" cy="150" r="26" fill="#5f8a4f"/><rect x="${x - 33}" y="160" width="6" height="40" fill="#6b4e33"/></svg>`;
+  }
+  const HOMES = [
+    ['Maple Grove', '14 Birch Lane', 'House', 585000, 4, 3, 2150, 2], ['Harbor View', '201 Quay St, Apt 8B', 'Apartment', 349000, 2, 2, 980, 1], ['Old Town', '7 Mill Row', 'Townhouse', 459000, 3, 2, 1540, 5],
+    ['Cedar Heights', '88 Summit Dr', 'House', 895000, 5, 4, 3320, 9], ['Riverside', '55 Wharf Rd, Apt 3', 'Apartment', 279000, 1, 1, 640, 3], ['Lakeside', '2 Shoreline Ct', 'House', 720000, 4, 3, 2600, 7],
+    ['Old Town', '19 Mill Row', 'Townhouse', 512000, 3, 3, 1720, 12], ['Maple Grove', '41 Elm Street', 'House', 438000, 3, 2, 1650, 15], ['Downtown', '900 Main St, Apt 14C', 'Apartment', 615000, 3, 2, 1380, 4],
+  ].map(([area, street, type, price, beds, baths, sqft, days], id) => ({ id, area, street, type, price, beds, baths, sqft, days }));
+  let favs;
+  try { favs = new Set(JSON.parse(localStorage.getItem('haven-favs')) || []); } catch { favs = new Set(); }
+  const f = { q: '', type: '', max: 0, beds: 0, sort: 'new', onlyFav: false };
+  const usd = (n) => '$' + n.toLocaleString('en-US');
+  const $ = (s) => document.getElementById(s);
+
+  function render() {
+    let list = HOMES.filter((h) => (!f.q || (h.area + ' ' + h.street).toLowerCase().includes(f.q)) && (!f.type || h.type === f.type) && (!f.max || h.price <= f.max) && h.beds >= f.beds && (!f.onlyFav || favs.has(h.id)));
+    const by = { new: (a, b) => a.days - b.days, low: (a, b) => a.price - b.price, high: (a, b) => b.price - a.price, size: (a, b) => b.sqft - a.sqft };
+    list.sort(by[f.sort]);
+    $('count').textContent = `${list.length} home${list.length === 1 ? '' : 's'} for sale`;
+    $('saved').textContent = `♥ Saved (${favs.size})`;
+    $('grid').innerHTML = list.length ? list.map((h) => `<article class="home" data-id="${h.id}"><div class="pic">${art(h, h.id)}<span class="lbl">${h.days <= 3 ? 'New · ' : ''}${h.type}</span><button class="fav ${favs.has(h.id) ? 'on' : ''}" data-fav="${h.id}" aria-label="Save">♥</button></div>
+      <div class="body"><div class="price">${usd(h.price)}</div><h3>${h.street}</h3><small>${h.area}, Lakeside County · listed ${h.days}d ago</small>
+      <div class="specs"><span><b>${h.beds}</b> beds</span><span><b>${h.baths}</b> baths</span><span><b>${h.sqft.toLocaleString()}</b> sq ft</span></div></div></article>`).join('') : '<div class="none">No homes match these filters. Try widening your search.</div>';
+  }
+  function detail(h) {
+    $('detail').innerHTML = `<div class="d-pic">${art(h, h.id)}</div><div class="d-body"><small style="color:var(--muted)">${h.type} · ${h.area}</small><h3>${h.street}</h3><div class="price" style="font-size:26px;font-weight:700">${usd(h.price)}</div>
+      <div class="specs" style="border:0;padding:0;margin:0"><span><b>${h.beds}</b> beds</span><span><b>${h.baths}</b> baths</span><span><b>${h.sqft.toLocaleString()}</b> sq ft</span></div>
+      <div class="calc"><b>Mortgage estimate</b><label>Down payment: <span id="dpv"></span><input type="range" id="dp" min="5" max="50" value="20"></label><label>Rate: <span id="rv"></span><input type="range" id="rate" min="3" max="9" step="0.1" value="6.4"></label><div>Est. monthly payment (30 yrs)</div><div class="pay" id="pay"></div></div>
+      <button class="cta" onclick="this.textContent='Request sent — an agent will call you (demo)'">Schedule a viewing</button></div>`;
+    const calc = () => {
+      const dp = +$('dp').value, r = +$('rate').value / 1200, n = 360, P = h.price * (1 - dp / 100);
+      $('dpv').textContent = `${dp}% (${usd(Math.round(h.price * dp / 100))})`; $('rv').textContent = $('rate').value + '%';
+      $('pay').textContent = usd(Math.round(P * r / (1 - Math.pow(1 + r, -n)))) + '/mo';
+    };
+    $('dp').oninput = $('rate').oninput = calc; calc();
+    $('dlg').showModal();
+  }
+  $('grid').addEventListener('click', (e) => {
+    const fb = e.target.closest('[data-fav]');
+    if (fb) { const id = +fb.dataset.fav; favs.has(id) ? favs.delete(id) : favs.add(id); try { localStorage.setItem('haven-favs', JSON.stringify([...favs])); } catch {} return render(); }
+    const card = e.target.closest('.home'); if (card) detail(HOMES[card.dataset.id]);
+  });
+  $('search').addEventListener('submit', (e) => { e.preventDefault(); const s = e.target; f.q = s.q.value.trim().toLowerCase(); f.type = s.type.value; f.max = +s.max.value; f.beds = +s.beds.value; render(); });
+  $('search').addEventListener('change', (e) => e.target.tagName === 'SELECT' && $('search').requestSubmit());
+  $('sort').onchange = (e) => { f.sort = e.target.value; render(); };
+  $('onlyFav').onclick = $('saved').onclick = () => { f.onlyFav = !f.onlyFav; $('onlyFav').classList.toggle('on', f.onlyFav); render(); };
+  render();
+</script>
+</body>
+</html>
